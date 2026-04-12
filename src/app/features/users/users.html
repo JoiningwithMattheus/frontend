@@ -1,0 +1,68 @@
+<section class="users-page">
+  <header class="users-header">
+    <p class="eyebrow">Angular SPA + NestJS API</p>
+    <h1>Users</h1>
+    <p class="intro">Create users from the UI and load them from PostgreSQL through your NestJS API.</p>
+  </header>
+
+  <form class="user-form" (ngSubmit)="addUser()">
+    <label for="name">Name</label>
+    <div class="actions">
+      <input
+        id="name"
+        name="name"
+        [(ngModel)]="name"
+        placeholder="Enter a user name"
+        autocomplete="off"
+      />
+      <button type="submit" [disabled]="isLoading">Add User</button>
+    </div>
+  </form>
+
+  @if (error) {
+    <p class="message error">{{ error }}</p>
+  }
+
+  @if (isLoading) {
+    <p class="message">Loading...</p>
+  } @else if (users.length === 0) {
+    <p class="message">No users yet. Add the first one.</p>
+  } @else {
+    <ul class="user-list">
+      <li *ngFor="let user of users">
+        @if (editingId === user.id) {
+          <div class="edit-row">
+            <input
+              [id]="'edit-name-' + user.id"
+              [name]="'editName' + user.id"
+              [(ngModel)]="editingName"
+              placeholder="Enter a user name"
+              autocomplete="off"
+            />
+            <div class="row-actions">
+              <button type="button" class="secondary" (click)="cancelEdit()" [disabled]="isLoading">
+                Cancel
+              </button>
+              <button type="button" (click)="saveEdit(user)" [disabled]="isLoading">Save</button>
+            </div>
+          </div>
+        } @else {
+          <div class="user-row">
+            <div class="user-meta">
+              <span class="user-name">{{ user.name }}</span>
+              <span class="user-id">#{{ user.id }}</span>
+            </div>
+            <div class="row-actions">
+              <button type="button" class="secondary" (click)="startEdit(user)" [disabled]="isLoading">
+                Edit
+              </button>
+              <button type="button" class="danger" (click)="deleteUser(user)" [disabled]="isLoading">
+                Delete
+              </button>
+            </div>
+          </div>
+        }
+      </li>
+    </ul>
+  }
+</section>
