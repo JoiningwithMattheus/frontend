@@ -1,68 +1,152 @@
 <section class="users-page">
   <header class="users-header">
-    <p class="eyebrow">Angular SPA + NestJS API</p>
-    <h1>Users</h1>
-    <p class="intro">Create users from the UI and load them from PostgreSQL through your NestJS API.</p>
+    <div>
+      <p class="eyebrow">Angular SPA + NestJS API + Keycloak</p>
+      <h1>Users</h1>
+      <p class="intro">
+        Create users from the UI, send the request through NestJS, and protect the API with a Keycloak access token.
+      </p>
+    </div>
+
+    <div class="auth-actions">
+      @if (auth.isAuthenticated()) {
+        <span class="auth-status">Signed in</span>
+        <button type="button" class="secondary" (click)="logout()">Logout</button>
+      } @else {
+        <span class="auth-status muted">Signed out</span>
+        <button type="button" (click)="login()">Login</button>
+      }
+    </div>
   </header>
 
-  <form class="user-form" (ngSubmit)="addUser()">
-    <label for="name">Name</label>
-    <div class="actions">
-      <input
-        id="name"
-        name="name"
-        [(ngModel)]="name"
-        placeholder="Enter a user name"
-        autocomplete="off"
-      />
+  @if (!auth.isAuthenticated()) {
+    <section class="login-card">
+      <p class="eyebrow">Authentication required</p>
+      <h2>Sign in before calling the API</h2>
+      <p>
+        Your NestJS <code>/users</code> route now expects an
+        <code>Authorization: Bearer ...</code> header. Login gives Angular a Keycloak token so the interceptor can add it.
+      </p>
+      <button type="button" (click)="login()">Login with Keycloak</button>
+    </section>
+  } @else if (canManageUsers()) {
+    <form class="user-form" (ngSubmit)="addUser()">
+      <div class="field-grid">
+        <label>
+          <span>Name</span>
+          <input
+            name="name"
+            [(ngModel)]="name"
+            placeholder="Enter a user name"
+            autocomplete="name"
+          />
+        </label>
+
+        <label>
+          <span>Email</span>
+          <input
+            name="email"
+            type="email"
+            [(ngModel)]="email"
+            placeholder="user@example.com"
+            autocomplete="email"
+          />
+        </label>
+
+        <label>
+          <span>Role</span>
+          <select name="role" [(ngModel)]="role">
+            <option value="USER">User</option>
+            <option value="ADMIN">Admin</option>
+          </select>
+        </label>
+      </div>
+
       <button type="submit" [disabled]="isLoading">Add User</button>
-    </div>
-  </form>
+    </form>
+  } @else {
+    <section class="login-card">
+      <p class="eyebrow">Read-only access</p>
+      <h2>You are signed in, but not as a Keycloak admin</h2>
+      <p>
+        You can load users, but creating, editing, and deleting now require the
+        <code>admin</code> role in Keycloak. The user <code>role</code> field below is just app data stored in Postgres.
+      </p>
+    </section>
+  }
 
   @if (error) {
     <p class="message error">{{ error }}</p>
   }
 
-  @if (isLoading) {
-    <p class="message">Loading...</p>
-  } @else if (users.length === 0) {
-    <p class="message">No users yet. Add the first one.</p>
-  } @else {
-    <ul class="user-list">
-      <li *ngFor="let user of users">
-        @if (editingId === user.id) {
-          <div class="edit-row">
-            <input
-              [id]="'edit-name-' + user.id"
-              [name]="'editName' + user.id"
-              [(ngModel)]="editingName"
-              placeholder="Enter a user name"
-              autocomplete="off"
-            />
-            <div class="row-actions">
-              <button type="button" class="secondary" (click)="cancelEdit()" [disabled]="isLoading">
-                Cancel
-              </button>
-              <button type="button" (click)="saveEdit(user)" [disabled]="isLoading">Save</button>
+  @if (auth.isAuthenticated()) {
+    @if (isLoading) {
+      <p class="message">Loading...</p>
+    } @else if (users.length === 0) {
+      <p class="message">No users yet. Add the first one.</p>
+    } @else {
+      <ul class="user-list">
+        <li *ngFor="let user of users">
+          @if (editingId === user.id) {
+            <div class="edit-row">
+              <div class="field-grid compact">
+                <label>
+                  <span>Name</span>
+                  <input
+                    [name]="'editName' + user.id"
+                    [(ngModel)]="editingName"
+                    placeholder="Enter a user name"
+                    autocomplete="name"
+                  />
+                </label>
+
+                <label>
+                  <span>Email</span>
+                  <input
+                    [name]="'editEmail' + user.id"
+                    type="email"
+                    [(ngModel)]="editingEmail"
+                    placeholder="user@example.com"
+                    autocomplete="email"
+                  />
+                </label>
+
+                <label>
+                  <span>Role</span>
+                  <select [name]="'editRole' + user.id" [(ngModel)]="editingRole">
+                    <option value="USER">User</option>
+                    <option value="ADMIN">Admin</option>
+                  </select>
+                </label>
+              </div>
+
+              <div class="row-actions">
+                <button type="button" class="secondary" (click)="cancelEdit()" [disabled]="isLoading">
+                  Cancel
+                </button>
+                <button type="button" (click)="saveEdit(user)" [disabled]="isLoading">Save</button>
+              </div>
             </div>
-          </div>
-        } @else {
-          <div class="user-row">
-            <div class="user-meta">
-              <span class="user-name">{{ user.name }}</span>
-              <span class="user-id">#{{ user.id }}</span>
+          } @else {
+            <div class="user-row">
+              <div class="user-meta">
+                <span class="user-name">{{ user.name }}</span>
+                <span class="user-email">{{ user.email || 'Email not stored yet' }}</span>
+                <span class="role-pill">{{ user.role || 'USER' }}</span>
+                <span class="user-id">#{{ user.id }}</span>
+              </div>
+              <div class="row-actions">
+                <button type="button" class="secondary" (click)="startEdit(user)" [disabled]="isLoading || !canManageUsers()">
+                  Edit
+                </button>
+                <button type="button" class="danger" (click)="deleteUser(user)" [disabled]="isLoading || !canManageUsers()">
+                  Delete
+                </button>
+              </div>
             </div>
-            <div class="row-actions">
-              <button type="button" class="secondary" (click)="startEdit(user)" [disabled]="isLoading">
-                Edit
-              </button>
-              <button type="button" class="danger" (click)="deleteUser(user)" [disabled]="isLoading">
-                Delete
-              </button>
-            </div>
-          </div>
-        }
-      </li>
-    </ul>
+          }
+        </li>
+      </ul>
+    }
   }
 </section>

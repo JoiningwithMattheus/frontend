@@ -1,10 +1,8 @@
 export interface User {
   id: number;
   name: string;
-  email: string;
+  email: string | null;
   role: 'ADMIN' | 'USER';
-  createdAt: string;
-  updatedAt: string;
 }
 
 export interface CreateUserDto {

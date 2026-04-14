@@ -12,7 +12,7 @@ export class UsersService {
     return this.http.get<User[]>(this.apiUrl);
   }
 
-  getUser(id: string): Observable<User> {
+  getUser(id: number): Observable<User> {
     return this.http.get<User>(`${this.apiUrl}/${id}`);
   }
 
@@ -20,11 +20,11 @@ export class UsersService {
     return this.http.post<User>(this.apiUrl, dto);
   }
 
-  updateUser(id: string, dto: Partial<CreateUserDto>): Observable<User> {
+  updateUser(id: number, dto: UpdateUserDto): Observable<User> {
     return this.http.patch<User>(`${this.apiUrl}/${id}`, dto);
   }
 
-  deleteUser(id: string): Observable<void> {
+  deleteUser(id: number): Observable<void> {
     return this.http.delete<void>(`${this.apiUrl}/${id}`);
   }
 }

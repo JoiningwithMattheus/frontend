@@ -2,6 +2,18 @@ import { isPlatformBrowser } from '@angular/common';
 import { Injectable, PLATFORM_ID, inject, signal } from '@angular/core';
 import Keycloak from 'keycloak-js';
 
+interface TokenPayloadWithRoles {
+  realm_access?: {
+    roles?: string[];
+  };
+  resource_access?: Record<
+    string,
+    {
+      roles?: string[];
+    }
+  >;
+}
+
 @Injectable({ providedIn: 'root' })
 export class AuthService {
   private readonly platformId = inject(PLATFORM_ID);
@@ -20,7 +32,7 @@ export class AuthService {
     });
 
     const ok = await this.keycloak.init({
-      onLoad: 'login-required',
+      onLoad: 'check-sso',
       pkceMethod: 'S256',
     });
 
@@ -50,5 +62,45 @@ export class AuthService {
 
   getToken(): string | null {
     return this.token();
+  }
+
+  hasRole(role: string): boolean {
+    const payload = this.getTokenPayload();
+    if (!payload) return false;
+
+    const expectedRole = role.toLowerCase();
+    const roles = new Set<string>();
+
+    for (const realmRole of payload.realm_access?.roles ?? []) {
+      roles.add(realmRole.toLowerCase());
+    }
+
+    for (const clientAccess of Object.values(payload.resource_access ?? {})) {
+      for (const clientRole of clientAccess.roles ?? []) {
+        roles.add(clientRole.toLowerCase());
+      }
+    }
+
+    return roles.has(expectedRole);
+  }
+
+  private getTokenPayload(): TokenPayloadWithRoles | null {
+    const token = this.token();
+    if (!token || !isPlatformBrowser(this.platformId)) return null;
+
+    const payload = token.split('.')[1];
+    if (!payload) return null;
+
+    try {
+      const normalizedPayload = payload.replace(/-/g, '+').replace(/_/g, '/');
+      const paddedPayload = normalizedPayload.padEnd(
+        normalizedPayload.length + ((4 - (normalizedPayload.length % 4)) % 4),
+        '=',
+      );
+
+      return JSON.parse(atob(paddedPayload)) as TokenPayloadWithRoles;
+    } catch {
+      return null;
+    }
   }
 }
