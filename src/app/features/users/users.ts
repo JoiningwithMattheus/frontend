@@ -2,7 +2,7 @@ import { CommonModule } from '@angular/common';
 import { Component, OnInit, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { finalize } from 'rxjs';
-import { User, UsersService } from '../../core/users';
+import { User, UsersService } from '../../users/users';
 
 @Component({
   selector: 'app-users',

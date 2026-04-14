@@ -20,7 +20,7 @@ export class AuthService {
     });
 
     const ok = await this.keycloak.init({
-      onLoad: 'check-sso',
+      onLoad: 'login-required',
       pkceMethod: 'S256',
     });
 
