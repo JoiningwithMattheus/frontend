@@ -214,6 +214,13 @@ export class UsersComponent implements OnInit {
       return `Could not ${action}. Make sure the backend is running on http://localhost:3000.`;
     }
 
+    if (error.status === 400) {
+      const message = error.error?.message;
+      return typeof message === 'string'
+        ? message
+        : `Could not ${action}. Please check the form values.`;
+    }
+
     if (error.status === 401) {
       return `Could not ${action}. Please sign in again so Angular can send a valid Keycloak token.`;
     }

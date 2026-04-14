@@ -96,6 +96,13 @@ select {
   background: #fff;
 }
 
+.field-error {
+  color: var(--danger);
+  font-size: 0.82rem;
+  font-weight: 700;
+}
+
+
 button {
   padding: 0.85rem 1.25rem;
   border: 0;
