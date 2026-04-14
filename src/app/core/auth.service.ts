@@ -1,6 +1,7 @@
 import { isPlatformBrowser } from '@angular/common';
 import { Injectable, PLATFORM_ID, inject, signal } from '@angular/core';
 import Keycloak from 'keycloak-js';
+import { environment } from '../../environment/environment';
 
 interface TokenPayloadWithRoles {
   realm_access?: {
@@ -26,9 +27,9 @@ export class AuthService {
     if (!isPlatformBrowser(this.platformId)) return;
 
     this.keycloak = new Keycloak({
-      url: 'http://localhost:8080',
-      realm: 'NestJS',
-      clientId: 'frontend',
+      url: environment.keycloak.url,
+      realm: environment.keycloak.realm,
+      clientId: environment.keycloak.clientId,
     });
 
     const ok = await this.keycloak.init({
@@ -57,7 +58,7 @@ export class AuthService {
   }
 
   logout(): void {
-    this.keycloak?.logout({ redirectUri: 'http://localhost:4200/' });
+    this.keycloak?.logout({ redirectUri: window.location.origin + '/' });
   }
 
   getToken(): string | null {
