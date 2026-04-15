@@ -39,7 +39,7 @@ export class AuthService {
 
     this.isAuthenticated.set(ok);
     this.token.set(this.keycloak.token ?? null);
-    console.log(this.keycloak.token);
+    // console.log(this.keycloak.token);
 
     // keep token fresh
     setInterval(async () => {
@@ -48,7 +48,7 @@ export class AuthService {
         const refreshed = await this.keycloak.updateToken(30);
         if (refreshed) {
           this.token.set(this.keycloak.token ?? null);
-          console.log('Refreshed Keycloak access token:', this.keycloak.token);
+          // console.log('Refreshed Keycloak access token:', this.keycloak.token);
         }
       } catch {
         this.token.set(null);
