@@ -7,7 +7,7 @@ import { environment } from '../../environment/environment';
 @Injectable({ providedIn: 'root' })
 export class UsersService {
   private readonly http = inject(HttpClient);
-  private readonly apiUrl = '${environment.apiUrl}/users';
+  private readonly apiUrl = `${environment.apiUrl}/users`;
 
   getUsers(): Observable<User[]> {
     return this.http.get<User[]>(this.apiUrl);
