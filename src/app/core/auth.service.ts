@@ -1,69 +1,48 @@
-import { isPlatformBrowser } from '@angular/common';
-import { Injectable, PLATFORM_ID, inject, signal } from '@angular/core';
-import Keycloak from 'keycloak-js';
-import { environment } from '../../environment/environment';
+import { Injectable, inject, signal } from '@angular/core';
+import { OidcSecurityService } from 'angular-auth-oidc-client';
 
-interface TokenPayloadWithRoles {
-  realm_access?: {
-    roles?: string[];
-  };
-  resource_access?: Record<
-    string,
-    {
-      roles?: string[];
-    }
-  >;
-}
+import { environment } from '../../environment/environment';
 
 @Injectable({ providedIn: 'root' })
 export class AuthService {
-  private readonly platformId = inject(PLATFORM_ID);
-  private keycloak: Keycloak | null = null;
+  private readonly oidcSecurityService = inject(OidcSecurityService);
 
   readonly token = signal<string | null>(null);
   readonly isAuthenticated = signal(false);
+  readonly userData = signal<any>(null);
 
-  async init(): Promise<void> {
-    if (!isPlatformBrowser(this.platformId)) return;
+  constructor() {
+    this.oidcSecurityService.isAuthenticated$.subscribe(({ isAuthenticated }) => {
+      this.isAuthenticated.set(isAuthenticated);
 
-    this.keycloak = new Keycloak({
-      url: environment.keycloak.url,
-      realm: environment.keycloak.realm,
-      clientId: environment.keycloak.clientId,
-    });
-
-    const ok = await this.keycloak.init({
-      onLoad: 'check-sso',
-      pkceMethod: 'S256',
-      checkLoginIframe: false,
-    });
-
-    this.isAuthenticated.set(ok);
-    this.token.set(this.keycloak.token ?? null);
-    // console.log(this.keycloak.token);
-
-    // keep token fresh
-    setInterval(async () => {
-      if (!this.keycloak) return;
-      try {
-        const refreshed = await this.keycloak.updateToken(30);
-        if (refreshed) {
-          this.token.set(this.keycloak.token ?? null);
-          // console.log('Refreshed Keycloak access token:', this.keycloak.token);
-        }
-      } catch {
+      if (!isAuthenticated) {
         this.token.set(null);
-        this.isAuthenticated.set(false);
+        return;
       }
-    }, 10_000);
+
+      this.oidcSecurityService.getAccessToken().subscribe((token) => {
+        this.token.set(token || null);
+      });
+    });
+
+    this.oidcSecurityService.userData$.subscribe(({ userData }) => {
+      this.userData.set(userData ?? null);
+    });
   }
 
   login(): void {
-    this.keycloak?.login();
+    this.oidcSecurityService.authorize();
   }
 
   logout(): void {
-    this.keycloak?.logout({ redirectUri: window.location.origin + '/' });
+    this.oidcSecurityService.logoffLocal();
+
+    const logoutUrl =
+      `${environment.auth.domain}/logout` +
+      `?client_id=${environment.auth.clientId}` +
+      `&logout_uri=${encodeURIComponent(environment.auth.postLogoutRedirectUri)}`;
+
+    window.location.href = logoutUrl;
   }
 
   getToken(): string | null {
@@ -71,42 +50,7 @@ export class AuthService {
   }
 
   hasRole(role: string): boolean {
-    const payload = this.getTokenPayload();
-    if (!payload) return false;
-
-    const expectedRole = role.toLowerCase();
-    const roles = new Set<string>();
-
-    for (const realmRole of payload.realm_access?.roles ?? []) {
-      roles.add(realmRole.toLowerCase());
-    }
-
-    for (const clientAccess of Object.values(payload.resource_access ?? {})) {
-      for (const clientRole of clientAccess.roles ?? []) {
-        roles.add(clientRole.toLowerCase());
-      }
-    }
-
-    return roles.has(expectedRole);
-  }
-
-  private getTokenPayload(): TokenPayloadWithRoles | null {
-    const token = this.token();
-    if (!token || !isPlatformBrowser(this.platformId)) return null;
-
-    const payload = token.split('.')[1];
-    if (!payload) return null;
-
-    try {
-      const normalizedPayload = payload.replace(/-/g, '+').replace(/_/g, '/');
-      const paddedPayload = normalizedPayload.padEnd(
-        normalizedPayload.length + ((4 - (normalizedPayload.length % 4)) % 4),
-        '=',
-      );
-
-      return JSON.parse(atob(paddedPayload)) as TokenPayloadWithRoles;
-    } catch {
-      return null;
-    }
+    const groups = this.userData()?.['cognito:groups'] ?? [];
+    return groups.includes(role);
   }
 }
