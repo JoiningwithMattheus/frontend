@@ -2,12 +2,8 @@ import { ApplicationConfig, provideBrowserGlobalErrorListeners } from '@angular/
 import { provideHttpClient, withFetch, withInterceptors } from '@angular/common/http';
 import { provideRouter } from '@angular/router';
 import { provideClientHydration, withEventReplay } from '@angular/platform-browser';
-import {
-  authInterceptor as oidcAuthInterceptor,
-  LogLevel,
-  provideAuth,
-  withAppInitializerAuthCheck,
-} from 'angular-auth-oidc-client';
+import { LogLevel, provideAuth, withAppInitializerAuthCheck } from 'angular-auth-oidc-client';
+import { authInterceptor } from './core/auth.interceptor';
 
 import { routes } from './app.routes';
 import { environment } from '../environment/environment';
@@ -16,7 +12,7 @@ export const appConfig: ApplicationConfig = {
   providers: [
     provideBrowserGlobalErrorListeners(),
     provideRouter(routes),
-    provideHttpClient(withFetch(), withInterceptors([oidcAuthInterceptor()])),
+    provideHttpClient(withFetch(), withInterceptors([authInterceptor])),
     provideClientHydration(withEventReplay()),
 
     provideAuth(

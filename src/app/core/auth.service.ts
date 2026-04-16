@@ -10,19 +10,31 @@ export class AuthService {
   readonly token = signal<string | null>(null);
   readonly isAuthenticated = signal(false);
   readonly userData = signal<any>(null);
+  readonly groups = signal<string[]>([]);
 
   constructor() {
     this.oidcSecurityService.isAuthenticated$.subscribe(({ isAuthenticated }) => {
-      this.isAuthenticated.set(isAuthenticated);
-
       if (!isAuthenticated) {
         this.token.set(null);
+        this.isAuthenticated.set(false);
         return;
       }
 
       this.oidcSecurityService.getAccessToken().subscribe((token) => {
         this.token.set(token || null);
+        this.isAuthenticated.set(!!token);
+        this.oidcSecurityService.getAccessToken().subscribe((token) => {
+          this.token.set(token || null);
+          this.groups.set(this.getGroupsFromToken(token));
+          this.isAuthenticated.set(!!token);
+        });
       });
+      if (!isAuthenticated) {
+        this.token.set(null);
+        this.groups.set([]);
+        this.isAuthenticated.set(false);
+        return;
+      }
     });
 
     this.oidcSecurityService.userData$.subscribe(({ userData }) => {
@@ -50,7 +62,20 @@ export class AuthService {
   }
 
   hasRole(role: string): boolean {
-    const groups = this.userData()?.['cognito:groups'] ?? [];
-    return groups.includes(role);
+    return this.groups().some((group) => group.toLowerCase() === role.toLowerCase());
+  }
+
+  private getGroupsFromToken(token: string | null): string[] {
+    if (!token) return [];
+
+    try {
+      const payload = token.split('.')[1];
+      const base64 = payload.replace(/-/g, '+').replace(/_/g, '/');
+      const decodedPayload = JSON.parse(atob(base64));
+
+      return decodedPayload['cognito:groups'] ?? [];
+    } catch {
+      return [];
+    }
   }
 }

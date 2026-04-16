@@ -1,6 +1,5 @@
 import { Routes } from '@angular/router';
 import { UsersComponent } from './features/users/users';
-import { authGuard } from './core/auth.guard';
 
 export const routes: Routes = [
   {
@@ -11,6 +10,13 @@ export const routes: Routes = [
   {
     path: 'users',
     component: UsersComponent,
-    canActivate: [authGuard],
+  },
+  {
+    path: 'unauthorized',
+    redirectTo: 'users',
+  },
+  {
+    path: '**',
+    redirectTo: 'users',
   },
 ];

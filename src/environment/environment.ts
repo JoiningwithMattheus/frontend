@@ -7,7 +7,7 @@ export const environment = {
     clientId: '404dhfcksagu801epnl00jf9e8',
     redirectUrl: 'http://localhost:4200',
     postLogoutRedirectUri: 'http://localhost:4200',
-    scope: 'email openid profile',
+    scope: 'email openid phone',
     responseType: 'code',
     secureRoutes: ['/api'],
   },

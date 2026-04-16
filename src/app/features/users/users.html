@@ -1,10 +1,10 @@
 <section class="users-page">
   <header class="users-header">
     <div>
-      <p class="eyebrow">Angular SPA + NestJS API + Keycloak</p>
+      <p class="eyebrow">Angular SPA + NestJS API + Cognito</p>
       <h1>Users</h1>
       <p class="intro">
-        Create users from the UI, send the request through NestJS, and protect the API with a Keycloak access token.
+        Create users from the UI, send the request through NestJS, and protect the API with a Cognito access token.
       </p>
     </div>
 
@@ -25,9 +25,9 @@
     <h2>Sign in before calling the API</h2>
     <p>
       Your NestJS <code>/users</code> route now expects an
-      <code>Authorization: Bearer ...</code> header. Login gives Angular a Keycloak token so the interceptor can add it.
+      <code>Authorization: Bearer ...</code> header. Login gives Angular a Cognito token so the interceptor can add it.
     </p>
-    <button type="button" (click)="login()">Login with Keycloak</button>
+    <button type="button" (click)="login()">Login with Cognito</button>
   </section>
   } @else if (canManageUsers()) {
   <form class="user-form" #createForm="ngForm" (ngSubmit)="addUser()">
@@ -64,10 +64,10 @@
   } @else {
   <section class="login-card">
     <p class="eyebrow">Read-only access</p>
-    <h2>You are signed in, but not as a Keycloak admin</h2>
+    <h2>You are signed in, but not as a Cognito admin</h2>
     <p>
       You can load users, but creating, editing, and deleting now require the
-      <code>admin</code> role in Keycloak. The user <code>role</code> field below is just app data stored in Postgres.
+      <code>admin</code> role in Cognito The user <code>role</code> field below is just app data stored in Postgres.
     </p>
   </section>
   }
