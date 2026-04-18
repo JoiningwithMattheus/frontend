@@ -1,0 +1,72 @@
+<section class="tasks-page">
+  <header class="tasks-hero">
+    <div>
+      <p class="eyebrow">Private Workspace</p>
+      <h1>Tasks</h1>
+      <p>
+        These tasks are protected by your Cognito identity. The backend stores each task with your
+        token's <code>sub</code>, so another user cannot read or edit it.
+      </p>
+    </div>
+
+    <div class="auth-actions">
+      @if (auth.isAuthenticated()) {
+      <span>Signed in</span>
+      <button type="button" class="secondary" (click)="logout()">Logout</button>
+      } @else {
+      <span>Signed out</span>
+      <button type="button" (click)="login()">Login</button>
+      }
+    </div>
+  </header>
+
+  @if (!auth.isAuthenticated()) {
+  <section class="card">
+    <h2>Sign in to manage your tasks</h2>
+    <p>Angular will send your Cognito access token to NestJS through the auth interceptor.</p>
+    <button type="button" (click)="login()">Login with Cognito</button>
+  </section>
+  } @else {
+  <form class="card task-form" #taskForm="ngForm" (ngSubmit)="addTask()">
+    <label>
+      <span>Title</span>
+      <input name="title" [(ngModel)]="title" required minlength="2" placeholder="Write one thing to do" />
+    </label>
+
+    <label>
+      <span>Description</span>
+      <textarea name="description" [(ngModel)]="description" rows="4" placeholder="Optional details"></textarea>
+    </label>
+
+    <button type="submit" [disabled]="isLoading || taskForm.invalid">Add Task</button>
+  </form>
+
+  @if (error) {
+  <p class="message error">{{ error }}</p>
+  }
+
+  @if (isLoading) {
+  <p class="message">Loading...</p>
+  } @else if (tasks.length === 0) {
+  <p class="message">No tasks yet. Create your first private task.</p>
+  } @else {
+  <ul class="task-list">
+    <li *ngFor="let task of tasks" [class.completed]="task.completed">
+      <div>
+        <h2>{{ task.title }}</h2>
+        @if (task.description) {
+        <p>{{ task.description }}</p>
+        }
+      </div>
+
+      <div class="task-actions">
+        <button type="button" class="secondary" (click)="toggleTask(task)">
+          {{ task.completed ? 'Reopen' : 'Complete' }}
+        </button>
+        <button type="button" class="danger" (click)="deleteTask(task)">Delete</button>
+      </div>
+    </li>
+  </ul>
+  }
+  }
+</section>

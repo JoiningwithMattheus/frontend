@@ -68,7 +68,7 @@ export class UsersComponent implements OnInit {
     }
 
     if (!this.canManageUsers()) {
-      this.error = 'Your Keycloak account needs the admin role before creating users.';
+      this.error = 'Your Cognito user needs the admin group before creating users.';
       return;
     }
 
@@ -129,7 +129,7 @@ export class UsersComponent implements OnInit {
     }
 
     if (!this.canManageUsers()) {
-      this.error = 'Your Keycloak account needs the admin role before updating users.';
+      this.error = 'Your Cognito user needs the admin group before updating users.';
       return;
     }
 
@@ -175,7 +175,7 @@ export class UsersComponent implements OnInit {
     }
 
     if (!this.canManageUsers()) {
-      this.error = 'Your Keycloak account needs the admin role before deleting users.';
+      this.error = 'Your Cognito user needs the admin group before deleting users.';
       return;
     }
 
@@ -222,11 +222,11 @@ export class UsersComponent implements OnInit {
     }
 
     if (error.status === 401) {
-      return `Could not ${action}. Please sign in again so Angular can send a valid Keycloak token.`;
+      return `Could not ${action}. Please sign in again so Angular can send a valid Cognito token.`;
     }
 
     if (error.status === 403) {
-      return `Could not ${action}. Your Keycloak account needs the admin role for this action.`;
+      return `Could not ${action}. Your Cognito user needs the admin group for this action.`;
     }
 
     return `Could not ${action}. API returned HTTP ${error.status}.`;

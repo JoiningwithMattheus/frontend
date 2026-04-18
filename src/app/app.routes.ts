@@ -5,18 +5,27 @@ export const routes: Routes = [
   {
     path: '',
     pathMatch: 'full',
-    redirectTo: 'users',
+    redirectTo: 'journal',
   },
   {
     path: 'users',
     component: UsersComponent,
   },
   {
+    path: 'tasks',
+    loadComponent: () => import('./tasks/tasks').then((m) => m.TaskComponent),
+  },
+  {
+    path: 'journal',
+    loadComponent: () =>
+      import('./journal/journal').then((m) => m.JournalComponent),
+  },
+  {
     path: 'unauthorized',
-    redirectTo: 'users',
+    redirectTo: 'journal',
   },
   {
     path: '**',
-    redirectTo: 'users',
+    redirectTo: 'journal',
   },
 ];

@@ -1,0 +1,103 @@
+<section class="journal-page">
+  <header class="journal-hero">
+    <div>
+      <p class="eyebrow">Private by default</p>
+      <h1>Feelings Journal</h1>
+      <p>
+        A quiet place to write honestly. Entries are stored under your Cognito identity and are not
+        shared with anyone in this first stage.
+      </p>
+    </div>
+
+    <div class="auth-actions">
+      @if (auth.isAuthenticated()) {
+      <span>Signed in</span>
+      <button type="button" class="secondary" (click)="logout()">Logout</button>
+      } @else {
+      <span>Signed out</span>
+      <button type="button" (click)="login()">Login</button>
+      }
+    </div>
+  </header>
+
+  @if (!auth.isAuthenticated()) {
+  <section class="journal-card intro-card">
+    <h2>Your diary needs a lock first</h2>
+    <p>
+      Sign in with Cognito so the backend can attach each entry to your verified identity.
+    </p>
+    <button type="button" (click)="login()">Login with Cognito</button>
+  </section>
+  } @else {
+  <form class="journal-card entry-form" #entryForm="ngForm" (ngSubmit)="createEntry()">
+    <label>
+      <span>Title</span>
+      <input name="title" [(ngModel)]="title" placeholder="Optional, like 'A heavy morning'" />
+    </label>
+
+    <label>
+      <span>Mood</span>
+      <select name="mood" [(ngModel)]="mood">
+        <option value="">Choose a mood</option>
+        <option *ngFor="let option of moods" [value]="option.value">{{ option.label }}</option>
+      </select>
+    </label>
+
+    <label class="wide">
+      <span>What are you feeling?</span>
+      <textarea
+        name="content"
+        [(ngModel)]="content"
+        required
+        rows="8"
+        placeholder="Write the true version. No performance, no polish."
+      ></textarea>
+    </label>
+
+    <button type="submit" [disabled]="isLoading || entryForm.invalid">Save Private Entry</button>
+  </form>
+
+  @if (error) {
+  <p class="message error">{{ error }}</p>
+  }
+
+  @if (isLoading) {
+  <p class="message">Loading your private entries...</p>
+  } @else if (entries.length === 0) {
+  <p class="message">No entries yet. Start with one honest sentence.</p>
+  } @else {
+  <ul class="entry-list">
+    <li *ngFor="let entry of entries">
+      @if (editingId === entry.id) {
+      <div class="edit-panel">
+        <input [(ngModel)]="editingTitle" [name]="'editTitle' + entry.id" placeholder="Title" />
+        <select [(ngModel)]="editingMood" [name]="'editMood' + entry.id">
+          <option value="">Choose a mood</option>
+          <option *ngFor="let option of moods" [value]="option.value">{{ option.label }}</option>
+        </select>
+        <textarea [(ngModel)]="editingContent" [name]="'editContent' + entry.id" rows="6"></textarea>
+        <div class="entry-actions">
+          <button type="button" class="secondary" (click)="cancelEdit()">Cancel</button>
+          <button type="button" (click)="saveEdit(entry)">Save</button>
+        </div>
+      </div>
+      } @else {
+      <article>
+        <div class="entry-topline">
+          <span class="mood-pill">{{ moodLabel(entry.mood) }}</span>
+          <span class="visibility-pill">{{ entry.visibility }}</span>
+        </div>
+        <h2>{{ entry.title || 'Untitled feeling' }}</h2>
+        <p>{{ entry.content }}</p>
+        <small>{{ entry.createdAt | date: 'medium' }}</small>
+      </article>
+      <div class="entry-actions">
+        <button type="button" class="secondary" (click)="startEdit(entry)">Edit</button>
+        <button type="button" class="danger" (click)="deleteEntry(entry)">Delete</button>
+      </div>
+      }
+    </li>
+  </ul>
+  }
+  }
+</section>

@@ -5,7 +5,7 @@ export const environment = {
     authority: 'https://cognito-idp.eu-north-1.amazonaws.com/eu-north-1_906kvnKmh',
     domain: 'https://eu-north-1906kvnkmh.auth.eu-north-1.amazoncognito.com',
     clientId: '404dhfcksagu801epnl00jf9e8',
-    redirectUrl: 'http://localhost:4200',
+    redirectUrl: 'http://localhost:4200/journal',
     postLogoutRedirectUri: 'http://localhost:4200',
     scope: 'email openid phone',
     responseType: 'code',

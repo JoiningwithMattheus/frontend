@@ -1,0 +1,133 @@
+.tasks-page {
+  min-height: 100vh;
+  padding: 4rem clamp(1rem, 5vw, 5rem);
+  background:
+    radial-gradient(circle at top left, rgba(26, 111, 95, 0.18), transparent 32rem),
+    linear-gradient(135deg, #fbf7ec 0%, #edf3ef 100%);
+  color: #1d2733;
+}
+
+.tasks-hero,
+.card,
+.task-list li {
+  border: 1px solid rgba(29, 39, 51, 0.12);
+  border-radius: 1.5rem;
+  background: rgba(255, 255, 255, 0.78);
+  box-shadow: 0 1rem 3rem rgba(29, 39, 51, 0.08);
+}
+
+.tasks-hero {
+  display: flex;
+  justify-content: space-between;
+  gap: 2rem;
+  padding: 2rem;
+}
+
+.eyebrow {
+  color: #1a6f5f;
+  font-size: 0.85rem;
+  font-weight: 800;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+}
+
+h1 {
+  margin: 0.4rem 0 1rem;
+  font-size: clamp(3rem, 8vw, 5.5rem);
+  line-height: 0.9;
+}
+
+button {
+  border: 0;
+  border-radius: 999px;
+  padding: 0.9rem 1.4rem;
+  background: #1a6f5f;
+  color: white;
+  cursor: pointer;
+  font-weight: 800;
+}
+
+button:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.secondary {
+  background: #edf3ef;
+  color: #1d2733;
+}
+
+.danger {
+  background: #9d2f3f;
+}
+
+.auth-actions,
+.task-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.card {
+  margin-top: 1.5rem;
+  padding: 1.5rem;
+}
+
+.task-form {
+  display: grid;
+  gap: 1rem;
+}
+
+label {
+  display: grid;
+  gap: 0.4rem;
+  font-weight: 800;
+}
+
+input,
+textarea {
+  border: 1px solid rgba(29, 39, 51, 0.16);
+  border-radius: 1rem;
+  padding: 0.9rem 1rem;
+  font: inherit;
+}
+
+.message {
+  margin-top: 1.5rem;
+  border-radius: 1rem;
+  background: white;
+  padding: 1rem 1.2rem;
+}
+
+.error {
+  background: #fde4e7;
+  color: #9d2f3f;
+}
+
+.task-list {
+  display: grid;
+  gap: 1rem;
+  margin: 1.5rem 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.task-list li {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1.4rem;
+}
+
+.task-list li.completed h2,
+.task-list li.completed p {
+  opacity: 0.58;
+  text-decoration: line-through;
+}
+
+@media (max-width: 760px) {
+  .tasks-hero,
+  .task-list li {
+    flex-direction: column;
+  }
+}

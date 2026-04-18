@@ -19,6 +19,7 @@ export const appConfig: ApplicationConfig = {
       {
         config: {
           authority: environment.auth.authority,
+          authWellknownEndpointUrl: `${environment.auth.authority}/.well-known/openid-configuration`,
           redirectUrl: environment.auth.redirectUrl,
           postLogoutRedirectUri: environment.auth.postLogoutRedirectUri,
           clientId: environment.auth.clientId,
@@ -30,7 +31,6 @@ export const appConfig: ApplicationConfig = {
           logLevel: LogLevel.Debug,
         },
       },
-      withAppInitializerAuthCheck(),
     ),
   ],
 };

@@ -13,28 +13,23 @@ export class AuthService {
   readonly groups = signal<string[]>([]);
 
   constructor() {
-    this.oidcSecurityService.isAuthenticated$.subscribe(({ isAuthenticated }) => {
-      if (!isAuthenticated) {
-        this.token.set(null);
-        this.isAuthenticated.set(false);
-        return;
-      }
+    this.oidcSecurityService.checkAuth().subscribe(({ isAuthenticated }) => {
+      console.log('checkAuth result:', isAuthenticated);
+    });
 
-      this.oidcSecurityService.getAccessToken().subscribe((token) => {
-        this.token.set(token || null);
-        this.isAuthenticated.set(!!token);
-        this.oidcSecurityService.getAccessToken().subscribe((token) => {
-          this.token.set(token || null);
-          this.groups.set(this.getGroupsFromToken(token));
-          this.isAuthenticated.set(!!token);
-        });
-      });
+    this.oidcSecurityService.isAuthenticated$.subscribe(({ isAuthenticated }) => {
       if (!isAuthenticated) {
         this.token.set(null);
         this.groups.set([]);
         this.isAuthenticated.set(false);
         return;
       }
+
+      this.oidcSecurityService.getAccessToken().subscribe((token) => {
+        this.token.set(token || null);
+        this.groups.set(this.getGroupsFromToken(token));
+        this.isAuthenticated.set(!!token);
+      });
     });
 
     this.oidcSecurityService.userData$.subscribe(({ userData }) => {
@@ -43,6 +38,7 @@ export class AuthService {
   }
 
   login(): void {
+    console.log('Login clicked, calling Cognito authorize');
     this.oidcSecurityService.authorize();
   }
 
