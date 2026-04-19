@@ -1,6 +1,6 @@
 import { CommonModule } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
-import { Component, OnInit, inject } from '@angular/core';
+import { ChangeDetectorRef, Component, OnInit, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { finalize } from 'rxjs';
 
@@ -17,6 +17,7 @@ import { JournalService } from './journal.service';
 export class JournalComponent implements OnInit {
   readonly auth = inject(AuthService);
   private readonly journalService = inject(JournalService);
+  private readonly changeDetectorRef = inject(ChangeDetectorRef);
 
   readonly moods: { value: EntryMood; label: string }[] = [
     { value: 'HOPEFUL', label: 'Hopeful' },
@@ -66,13 +67,20 @@ export class JournalComponent implements OnInit {
 
     this.journalService
       .getEntries()
-      .pipe(finalize(() => (this.isLoading = false)))
+      .pipe(
+        finalize(() => {
+          this.isLoading = false;
+          this.markViewChanged();
+        }),
+      )
       .subscribe({
         next: (entries) => {
           this.entries = entries;
+          this.markViewChanged();
         },
         error: (error: HttpErrorResponse) => {
           this.error = this.getRequestErrorMessage(error, 'load entries');
+          this.markViewChanged();
         },
       });
   }
@@ -94,16 +102,23 @@ export class JournalComponent implements OnInit {
         content: trimmedContent,
         mood: this.mood || undefined,
       })
-      .pipe(finalize(() => (this.isLoading = false)))
+      .pipe(
+        finalize(() => {
+          this.isLoading = false;
+          this.markViewChanged();
+        }),
+      )
       .subscribe({
         next: (entry) => {
           this.entries = [entry, ...this.entries];
           this.title = '';
           this.content = '';
           this.mood = '';
+          this.markViewChanged();
         },
         error: (error: HttpErrorResponse) => {
           this.error = this.getRequestErrorMessage(error, 'save entry');
+          this.markViewChanged();
         },
       });
   }
@@ -143,6 +158,7 @@ export class JournalComponent implements OnInit {
             existingEntry.id === updatedEntry.id ? updatedEntry : existingEntry,
           );
           this.cancelEdit();
+          this.markViewChanged();
         },
         error: (error: HttpErrorResponse) => {
           this.error = this.getRequestErrorMessage(error, 'update entry');
@@ -157,6 +173,7 @@ export class JournalComponent implements OnInit {
       },
       error: (error: HttpErrorResponse) => {
         this.error = this.getRequestErrorMessage(error, 'delete entry');
+        this.markViewChanged();
       },
     });
   }
@@ -175,5 +192,9 @@ export class JournalComponent implements OnInit {
     }
 
     return `Could not ${action}. API returned HTTP ${error.status}.`;
+  }
+
+  private markViewChanged(): void {
+    this.changeDetectorRef.detectChanges();
   }
 }
