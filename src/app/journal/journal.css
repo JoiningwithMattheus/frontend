@@ -181,3 +181,29 @@ textarea {
     grid-template-columns: 1fr;
   }
 }
+
+.share-panel,
+.share-list {
+  border-radius: 1rem;
+  background: rgba(47, 111, 98, 0.08);
+  padding: 1rem;
+}
+
+.share-list ul {
+  display: grid;
+  gap: 0.6rem;
+  padding: 0;
+  list-style: none;
+}
+
+.share-list li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  box-shadow: none;
+}
+
+code {
+  overflow-wrap: anywhere;
+}

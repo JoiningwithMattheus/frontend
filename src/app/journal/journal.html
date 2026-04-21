@@ -45,13 +45,8 @@
 
     <label class="wide">
       <span>What are you feeling?</span>
-      <textarea
-        name="content"
-        [(ngModel)]="content"
-        required
-        rows="8"
-        placeholder="Write the true version. No performance, no polish."
-      ></textarea>
+      <textarea name="content" [(ngModel)]="content" required rows="8"
+        placeholder="Write the true version. No performance, no polish."></textarea>
     </label>
 
     <button type="submit" [disabled]="isLoading || entryForm.invalid">Save Private Entry</button>
@@ -68,6 +63,31 @@
   } @else {
   <ul class="entry-list">
     <li *ngFor="let entry of entries">
+      @if (sharingEntryId === entry.id) {
+      <div class="share-panel">
+        <label>
+          <span>Recipient Cognito username</span>
+          <input [(ngModel)]="recipientUsername" [name]="'recipientUsername' + entry.id"
+            placeholder="Enter username" />
+        </label>
+
+        <div class="entry-actions">
+          <button type="button" class="secondary" (click)="cancelShare()">Cancel</button>
+          <button type="button" (click)="shareEntry(entry)">Confirm Share</button>
+        </div>
+      </div>
+      }
+      @if (entry.shares?.length) {
+      <div class="share-list">
+        <p>Shared with:</p>
+        <ul>
+          <li *ngFor="let share of entry.shares">
+            <code>{{ share.recipientUsername }}</code>
+            <button type="button" class="danger" (click)="unshareEntry(entry, share.id)">Unshare</button>
+          </li>
+        </ul>
+      </div>
+      }
       @if (editingId === entry.id) {
       <div class="edit-panel">
         <input [(ngModel)]="editingTitle" [name]="'editTitle' + entry.id" placeholder="Title" />
@@ -94,10 +114,34 @@
       <div class="entry-actions">
         <button type="button" class="secondary" (click)="startEdit(entry)">Edit</button>
         <button type="button" class="danger" (click)="deleteEntry(entry)">Delete</button>
+        <button type="button" class="secondary" (click)="startShare(entry)">Share</button>
       </div>
       }
     </li>
   </ul>
   }
   }
+  <section class="journal-card shared-card">
+    <p class="eyebrow">Shared with me</p>
+    <h2>Entries other people shared with you</h2>
+
+    @if (sharedWithMe.length === 0) {
+    <p>No shared entries yet.</p>
+    } @else {
+    <ul class="entry-list">
+      <li *ngFor="let shared of sharedWithMe">
+        <article>
+          <div class="entry-topline">
+            <span class="mood-pill">{{ moodLabel(shared.entry.mood) }}</span>
+            <span class="visibility-pill">SHARED</span>
+          </div>
+          <h2>{{ shared.entry.title || 'Untitled feeling' }}</h2>
+          <p>{{ shared.entry.content }}</p>
+          <small>{{ shared.entry.createdAt | date: 'medium' }}</small>
+        </article>
+      </li>
+    </ul>
+    }
+  </section>
+
 </section>

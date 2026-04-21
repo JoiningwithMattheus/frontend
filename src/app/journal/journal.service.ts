@@ -3,7 +3,13 @@ import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
 
 import { environment } from '../../environment/environment';
-import { CreateEntryDto, JournalEntry, UpdateEntryDto } from './journal.model';
+import {
+  CreateEntryDto,
+  JournalEntry,
+  ShareEntryDto,
+  SharedEntry,
+  UpdateEntryDto,
+} from './journal.model';
 
 @Injectable({ providedIn: 'root' })
 export class JournalService {
@@ -24,5 +30,17 @@ export class JournalService {
 
   deleteEntry(id: number): Observable<JournalEntry> {
     return this.http.delete<JournalEntry>(`${this.apiUrl}/${id}`);
+  }
+
+  shareEntry(id: number, dto: ShareEntryDto) {
+    return this.http.post(`${this.apiUrl}/${id}/shares`, dto);
+  }
+
+  getSharedWithMe(): Observable<SharedEntry[]> {
+    return this.http.get<SharedEntry[]>(`${this.apiUrl}/shared-with-me`);
+  }
+
+  unshareEntry(entryId: number, shareId: number) {
+    return this.http.delete(`${this.apiUrl}/${entryId}/shares/${shareId}`);
   }
 }

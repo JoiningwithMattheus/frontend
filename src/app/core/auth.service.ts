@@ -29,6 +29,7 @@ export class AuthService {
         this.token.set(token || null);
         this.groups.set(this.getGroupsFromToken(token));
         this.isAuthenticated.set(!!token);
+        console.log('access token:', token);
       });
     });
 

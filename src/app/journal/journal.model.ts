@@ -17,6 +17,7 @@ export interface JournalEntry {
   visibility: 'PRIVATE' | 'SHARED' | 'COMMUNITY';
   createdAt: string;
   updatedAt: string;
+  shares?: EntryShare[];
 }
 
 export interface CreateEntryDto {
@@ -29,4 +30,23 @@ export interface UpdateEntryDto {
   title?: string;
   content?: string;
   mood?: EntryMood;
+}
+
+export interface EntryShare {
+  id: number;
+  entryId: number;
+  recipientUsername: string;
+  createdAt: string;
+}
+
+export interface SharedEntry {
+  id: number;
+  entryId: number;
+  recipientUsername: string;
+  createdAt: string;
+  entry: JournalEntry;
+}
+
+export interface ShareEntryDto {
+  recipientUsername: string;
 }

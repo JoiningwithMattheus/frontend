@@ -1,11 +1,11 @@
 import { CommonModule } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
-import { ChangeDetectorRef, Component, OnInit, inject } from '@angular/core';
+import { ChangeDetectorRef, Component, OnInit, effect, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { finalize } from 'rxjs';
 
 import { AuthService } from '../core/auth.service';
-import { EntryMood, JournalEntry } from './journal.model';
+import { EntryMood, JournalEntry, SharedEntry } from './journal.model';
 import { JournalService } from './journal.service';
 
 @Component({
@@ -18,6 +18,7 @@ export class JournalComponent implements OnInit {
   readonly auth = inject(AuthService);
   private readonly journalService = inject(JournalService);
   private readonly changeDetectorRef = inject(ChangeDetectorRef);
+  private hasLoadedAfterLogin = false;
 
   readonly moods: { value: EntryMood; label: string }[] = [
     { value: 'HOPEFUL', label: 'Hopeful' },
@@ -42,9 +43,14 @@ export class JournalComponent implements OnInit {
   editingContent = '';
   editingMood: EntryMood | '' = '';
 
+  sharedWithMe: SharedEntry[] = [];
+  sharingEntryId: number | null = null;
+  recipientUsername = '';
+
   ngOnInit(): void {
     if (this.auth.isAuthenticated()) {
       this.loadEntries();
+      this.loadSharedWithMe();
     }
   }
 
@@ -197,4 +203,82 @@ export class JournalComponent implements OnInit {
   private markViewChanged(): void {
     this.changeDetectorRef.detectChanges();
   }
+
+  loadSharedWithMe(): void {
+    if (!this.auth.isAuthenticated()) return;
+
+    this.journalService.getSharedWithMe().subscribe({
+      next: (entries) => {
+        this.sharedWithMe = entries;
+        this.markViewChanged();
+      },
+      error: (error: HttpErrorResponse) => {
+        this.error = this.getRequestErrorMessage(error, 'load shared entries');
+        this.markViewChanged();
+      },
+    });
+  }
+
+  startShare(entry: JournalEntry): void {
+    this.sharingEntryId = entry.id;
+    this.recipientUsername = '';
+    this.error = '';
+  }
+
+  cancelShare(): void {
+    this.sharingEntryId = null;
+    this.recipientUsername = '';
+  }
+
+  shareEntry(entry: JournalEntry): void {
+    const trimmedRecipientUsername = this.recipientUsername.trim();
+
+    if (!trimmedRecipientUsername) {
+      this.error = 'Enter the recipient Cognito username before sharing.';
+      return;
+    }
+
+    this.journalService
+      .shareEntry(entry.id, { recipientUsername: trimmedRecipientUsername })
+      .subscribe({
+        next: () => {
+          this.cancelShare();
+          this.loadEntries();
+        },
+        error: (error: HttpErrorResponse) => {
+          this.error = this.getRequestErrorMessage(error, 'share entry');
+          this.markViewChanged();
+        },
+      });
+  }
+
+  unshareEntry(entry: JournalEntry, shareId: number): void {
+    this.journalService.unshareEntry(entry.id, shareId).subscribe({
+      next: () => {
+        this.loadEntries();
+      },
+      error: (error: HttpErrorResponse) => {
+        this.error = this.getRequestErrorMessage(error, 'unshare entry');
+        this.markViewChanged();
+      },
+    });
+  }
+
+  private readonly authEffect = effect(() => {
+    const signedIn = this.auth.isAuthenticated();
+
+    if (!signedIn) {
+      this.hasLoadedAfterLogin = false;
+      this.entries = [];
+      this.sharedWithMe = [];
+      this.markViewChanged();
+      return;
+    }
+
+    if (this.hasLoadedAfterLogin) return;
+
+    this.hasLoadedAfterLogin = true;
+    this.loadEntries();
+    this.loadSharedWithMe();
+  });
 }
